@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Conway's Game of Life</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #gameBoard {
+            display: grid;
+            grid-template-columns: repeat(50, 20px);
+            grid-gap: 1px;
+        }
+
+.cell {
+    width: 20px;  /* Adjust size as needed */
+    height: 20px;  /* Adjust size as needed */
+    background-color: #eee;
+    border-radius: 50%;  /* Keeps the cell a circle */
+    /* Remove the transition property to eliminate fading effects */
+}
+
+.alive {
+    background-color: #333;  /* Solid color for alive cells */
+    /* Remove transform scaling to only change color without additional effects */
+}
+
+
+        button {
+            padding: 10px 20px;
+            margin: 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameBoard"></div>
+    <button id="startBtn">Start</button>
+    <button id="clearBtn">Clear</button>
+    <script>
+        const rows = 30;
+        const cols = 50;
+        const gameBoard = document.getElementById('gameBoard');
+        const startBtn = document.getElementById('startBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        let interval;
+        let isRunning = false;
+
+        function initialize() {
+            gameBoard.innerHTML = '';
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    let cell = document.createElement('div');
+                    cell.id = `cell-${i}-${j}`;
+                    cell.className = 'cell';
+                    cell.addEventListener('click', () => toggleCell(i, j));
+                    gameBoard.appendChild(cell);
+                }
+            }
+            randomize();
+        }
+
+        function randomize() {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    if (Math.random() > 0.8) {
+                        const cell = document.getElementById(`cell-${i}-${j}`);
+                        cell.classList.add('alive');
+                    }
+                }
+            }
+        }
+
+        function toggleCell(i, j) {
+            const cell = document.getElementById(`cell-${i}-${j}`);
+            cell.classList.toggle('alive');
+        }
+
+        function isCellAlive(i, j) {
+            if (i < 0 || i >= rows || j < 0 || j >= cols) return false;
+            return document.getElementById(`cell-${i}-${j}`).classList.contains('alive');
+        }
+
+        function countAliveNeighbors(i, j) {
+            let aliveNeighbors = 0;
+            for (let x = -1; x <= 1; x++) {
+                for (let y = -1; y <= 1; y++) {
+                    if (x === 0 && y === 0) continue;
+                    if (isCellAlive(i + x, j + y)) aliveNeighbors++;
+                }
+            }
+            return aliveNeighbors;
+        }
+
+        function update() {
+            let toToggle = [];
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const alive = isCellAlive(i, j);
+                    const neighbors = countAliveNeighbors(i, j);
+                    if (alive && (neighbors < 2 || neighbors > 3)) {
+                        toToggle.push([i, j]);
+                    } else if (!alive && neighbors === 3) {
+                        toToggle.push([i, j]);
+                    }
+                }
+            }
+            for (let [i, j] of toToggle) {
+                toggleCell(i, j);
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (isRunning) {
+                clearInterval(interval);
+                startBtn.textContent = 'Start';
+            } else {
+                interval = setInterval(update, 100);
+                startBtn.textContent = 'Stop';
+            }
+            isRunning = !isRunning;
+        });
+
+        clearBtn.addEventListener('click', () => {
+            clearInterval(interval);
+            isRunning = false;
+            startBtn.textContent = 'Start';
+            initialize();
+        });
+
+        initialize();
+    </script>
+</body>
+</html>
